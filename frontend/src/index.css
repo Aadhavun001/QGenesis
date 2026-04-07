@@ -1,0 +1,302 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 90%;
+    --muted-foreground: 215.4 16.3% 40%;
+
+    --accent: 192 91% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 85%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 262 83% 58%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 262 83% 58%;
+
+    /* Custom QGenesis Colors - Multi-color palette for light mode */
+    --qgenesis-purple: 262 83% 50%;
+    --qgenesis-pink: 340 82% 50%;
+    --qgenesis-cyan: 192 91% 40%;
+    --qgenesis-blue: 217 91% 50%;
+    --qgenesis-indigo: 239 84% 55%;
+    --qgenesis-navy: 224 71% 25%;
+    --qgenesis-orange: 25 95% 50%;
+    --qgenesis-green: 152 76% 40%;
+    --qgenesis-teal: 174 72% 35%;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 210 40% 98%;
+
+    --card: 224 71% 6%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 224 71% 6%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 12%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 192 91% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 217 91% 65%;
+    
+    --sidebar-background: 224 71% 6%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 217 91% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217 91% 65%;
+
+    /* Custom QGenesis Colors - Multi-color palette */
+    --qgenesis-purple: 262 83% 65%;
+    --qgenesis-pink: 340 82% 60%;
+    --qgenesis-cyan: 192 91% 58%;
+    --qgenesis-blue: 217 91% 65%;
+    --qgenesis-indigo: 239 84% 72%;
+    --qgenesis-navy: 224 71% 40%;
+    --qgenesis-orange: 25 95% 60%;
+    --qgenesis-green: 152 76% 52%;
+    --qgenesis-teal: 174 72% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: clip;
+  }
+
+  /* Respect iPhone notch / safe areas where supported */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@layer utilities {
+  .font-orbitron {
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--qgenesis-blue)), hsl(var(--qgenesis-cyan)), hsl(var(--qgenesis-indigo)));
+  }
+
+  .text-gradient-animated {
+    @apply bg-clip-text text-transparent;
+    background-size: 200% 200%;
+    background-image: linear-gradient(135deg, hsl(var(--qgenesis-blue)), hsl(var(--qgenesis-cyan)), hsl(var(--qgenesis-indigo)), hsl(var(--qgenesis-blue)));
+    animation: gradient-shift 4s ease infinite;
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--qgenesis-blue)), hsl(var(--qgenesis-indigo)));
+  }
+
+  .bg-gradient-secondary {
+    background: linear-gradient(135deg, hsl(var(--qgenesis-cyan)), hsl(var(--qgenesis-blue)));
+  }
+
+  .bg-gradient-mesh {
+    background: 
+      radial-gradient(at 40% 20%, hsl(var(--qgenesis-blue) / 0.25) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, hsl(var(--qgenesis-cyan) / 0.2) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, hsl(var(--qgenesis-indigo) / 0.2) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, hsl(var(--qgenesis-blue) / 0.15) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsl(var(--qgenesis-navy) / 0.15) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, hsl(var(--qgenesis-cyan) / 0.15) 0px, transparent 50%);
+  }
+
+  .glass {
+    @apply backdrop-blur-xl bg-background/90 border border-border/50;
+  }
+
+  .glass-card {
+    @apply backdrop-blur-xl bg-card/80 border border-border/40 shadow-xl;
+  }
+
+  /* Light mode specific overrides */
+  :root .glass-card {
+    @apply bg-card/95 border-border/50 shadow-lg;
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 40px hsl(var(--qgenesis-blue) / 0.4), 0 0 80px hsl(var(--qgenesis-blue) / 0.2);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 40px hsl(var(--qgenesis-cyan) / 0.4), 0 0 80px hsl(var(--qgenesis-cyan) / 0.2);
+  }
+
+  .nav-link {
+    @apply relative text-muted-foreground hover:text-foreground transition-colors duration-300;
+  }
+
+  .nav-link::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-accent transition-all duration-300;
+  }
+
+  .nav-link:hover::after {
+    @apply w-full;
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(2deg); }
+}
+
+@keyframes float-reverse {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(20px) rotate(-2deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 7s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-3000 {
+  animation-delay: 3s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Print Styles for Question Paper */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  .print-paper {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "qgenesis-scripts",
+  "private": true,
+  "description": "One-time scripts (e.g. create admin user)",
+  "dependencies": {
+    "firebase-admin": "^11.11.0"
+  }
+}

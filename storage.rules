@@ -1,0 +1,48 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User-scoped materials: users/{userId}/materials/{materialId}/{fileName}
+    match /users/{userId}/materials/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId)
+                   && request.resource.size < 50 * 1024 * 1024
+                   && request.resource.contentType.matches('application/pdf|application/msword|application/vnd.openxmlformats.*|text/plain|image/.*');
+    }
+
+    // Legacy: materials/{userId}/... (keep for backward compatibility)
+    match /materials/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId)
+                   && request.resource.size < 50 * 1024 * 1024
+                   && request.resource.contentType.matches('application/pdf|application/msword|application/vnd.openxmlformats.*|text/plain');
+    }
+
+    match /avatars/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId)
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Question paper PDFs (submitted to HOD) – staff upload, staff/HOD read
+    match /papers/{paperId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated()
+                   && request.resource.size < 20 * 1024 * 1024
+                   && request.resource.contentType == 'application/pdf';
+    }
+
+    match /assets/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

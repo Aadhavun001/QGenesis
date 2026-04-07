@@ -1,0 +1,270 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      let u = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return u.exists() ? u.data : {};
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function isHOD() {
+      return hasRole('hod');
+    }
+
+    function isStaff() {
+      return hasRole('staff');
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isSameDepartment(department, institution, place) {
+      let userData = getUserData();
+      return userData.department == department
+             && userData.institution == institution
+             && userData.place == place;
+    }
+
+    function isNotBlocked() {
+      return !exists(/databases/$(database)/documents/blocked_users/$(request.auth.uid));
+    }
+
+    function materialData(materialId) {
+      return get(/databases/$(database)/documents/materials/$(materialId)).data;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId)
+                  || isAdmin()
+                  || (isHOD() && isSameDepartment(resource.data.department, resource.data.institution, resource.data.place));
+      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status']))
+                    || isAdmin();
+      allow create: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /blocked_users/{userId} {
+      allow read: if isAdmin() || request.auth.uid == userId;
+      allow write: if isAdmin();
+    }
+
+    match /phone_to_uid/{phone} {
+      allow read: if isAuthenticated() && request.auth.token.phone_number == phone;
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /questions/{questionId} {
+      allow read: if isAuthenticated() && isNotBlocked() && (
+                    isOwner(resource.data.staffId)
+                    || isAdmin()
+                    || (isHOD() && isSameDepartment(resource.data.department, resource.data.institution, resource.data.place))
+                  );
+      allow create: if isStaff() && isNotBlocked()
+                    && request.resource.data.staffId == request.auth.uid;
+      allow update: if isAuthenticated() && isNotBlocked() && (
+                      (isOwner(resource.data.staffId) && resource.data.status == 'draft')
+                      || isAdmin()
+                      || (isHOD() && isSameDepartment(resource.data.department, resource.data.institution, resource.data.place))
+                    );
+      allow delete: if isAuthenticated() && isNotBlocked() && (
+                      (isOwner(resource.data.staffId) && resource.data.status == 'draft')
+                      || isAdmin()
+                    );
+    }
+
+    match /deleted_questions/{questionId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() || isHOD();
+    }
+
+    match /generated_questions/{questionId} {
+      allow read: if isAuthenticated() && isNotBlocked() && (
+                    isOwner(resource.data.staffId)
+                    || isAdmin()
+                    || (isHOD() && isSameDepartment(resource.data.department, resource.data.institution, resource.data.place))
+                  );
+      allow create: if isStaff() && isNotBlocked()
+                    && request.resource.data.staffId == request.auth.uid;
+      allow update: if isAuthenticated() && isNotBlocked() && (
+                      (isOwner(resource.data.staffId) && resource.data.status == 'draft')
+                      || isAdmin()
+                      || (isHOD() && isSameDepartment(resource.data.department, resource.data.institution, resource.data.place))
+                    );
+      allow delete: if isAuthenticated() && isNotBlocked() && (
+                      (isOwner(resource.data.staffId) && resource.data.status == 'draft')
+                      || isAdmin()
+                    );
+    }
+
+    match /materials/{materialId} {
+      allow read: if isAuthenticated() && isNotBlocked() && (
+                    isOwner(resource.data.staffId)
+                    || isAdmin()
+                    || (isHOD() && isSameDepartment(resource.data.department, resource.data.institution, resource.data.place))
+                  );
+      allow create: if isStaff() && isNotBlocked()
+                    && request.resource.data.staffId == request.auth.uid;
+      allow update: if isAuthenticated() && isNotBlocked() && (
+                      isOwner(resource.data.staffId) || isAdmin()
+                    );
+      allow delete: if isAuthenticated() && isNotBlocked() && (
+                      isOwner(resource.data.staffId) || isAdmin()
+                    );
+      match /chunks/{chunkId} {
+        allow read: if isAuthenticated() && isNotBlocked() && (
+                      isOwner(materialData(materialId).staffId)
+                      || isAdmin()
+                      || (isHOD() && isSameDepartment(materialData(materialId).department, materialData(materialId).institution, materialData(materialId).place))
+                    );
+        allow write: if isAuthenticated() && isNotBlocked() && (
+                       isOwner(materialData(materialId).staffId) || isAdmin()
+                     );
+      }
+      match /topics/{topicId} {
+        allow read: if isAuthenticated() && isNotBlocked() && (
+                      isOwner(materialData(materialId).staffId)
+                      || isAdmin()
+                      || (isHOD() && isSameDepartment(materialData(materialId).department, materialData(materialId).institution, materialData(materialId).place))
+                    );
+        allow write: if isAuthenticated() && isNotBlocked() && (
+                       isOwner(materialData(materialId).staffId) || isAdmin()
+                     );
+      }
+    }
+
+    match /papers/{paperId} {
+      allow read: if isAuthenticated() && isNotBlocked() && (
+                    isOwner(resource.data.staffId)
+                    || isAdmin()
+                    || (isHOD() && isSameDepartment(resource.data.department, resource.data.institution, resource.data.place))
+                  );
+      allow create: if isStaff() && isNotBlocked()
+                    && request.resource.data.staffId == request.auth.uid;
+      allow update: if isAuthenticated() && isNotBlocked() && (
+                      (isOwner(resource.data.staffId) && resource.data.status == 'draft')
+                      || isAdmin()
+                      || (isHOD() && isSameDepartment(resource.data.department, resource.data.institution, resource.data.place))
+                    );
+      allow delete: if isAuthenticated() && isNotBlocked() && (
+                      (isOwner(resource.data.staffId) && resource.data.status == 'draft')
+                      || isAdmin()
+                    );
+    }
+
+    match /deleted_papers/{paperId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() || isHOD();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && isNotBlocked() && (
+                    resource.data.toRole == getUserData().role
+                    || resource.data.toUserId == request.auth.uid
+                    || isAdmin()
+                  );
+      allow create: if isAuthenticated() && isNotBlocked();
+      allow update: if isAuthenticated() && isNotBlocked() && (
+                      resource.data.toRole == getUserData().role
+                      || resource.data.toUserId == request.auth.uid
+                      || isAdmin()
+                    );
+      allow delete: if isAdmin();
+    }
+
+    match /chat_sessions/{sessionId} {
+      allow read: if isAuthenticated() && isNotBlocked() && (
+                    isOwner(resource.data.userId) || isAdmin()
+                  );
+      allow create: if isAuthenticated() && isNotBlocked()
+                    && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && isNotBlocked() && (
+                      isOwner(resource.data.userId) || isAdmin()
+                    );
+      allow delete: if isAuthenticated() && isNotBlocked() && (
+                      isOwner(resource.data.userId) || isAdmin()
+                    );
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated() && isNotBlocked() && (
+                            get(/databases/$(database)/documents/chat_sessions/$(sessionId)).data.userId == request.auth.uid
+                            || isAdmin()
+                          );
+      }
+    }
+
+    match /question_bank/{questionId} {
+      allow read: if isAuthenticated() && isNotBlocked() && (
+                    isOwner(resource.data.userId) || isAdmin()
+                  );
+      allow create: if isAuthenticated() && isNotBlocked()
+                    && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && isNotBlocked() && (
+                      isOwner(resource.data.userId) || isAdmin()
+                    );
+      allow delete: if isAuthenticated() && isNotBlocked() && (
+                      isOwner(resource.data.userId) || isAdmin()
+                    );
+    }
+
+    match /security_history/{entryId} {
+      allow read: if isAuthenticated() && isNotBlocked() && (
+                    isHOD() || isAdmin()
+                  );
+      allow create: if isAuthenticated() && isNotBlocked();
+      allow update, delete: if false;
+    }
+
+    match /feedbacks/{feedbackId} {
+      allow read: if isAdmin();
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    match /exam_types/{examTypeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /departments/{departmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /question_types/{typeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /app_settings/logo {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /app_settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /user_activities/{activityId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    match /notification_settings/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+  }
+}
