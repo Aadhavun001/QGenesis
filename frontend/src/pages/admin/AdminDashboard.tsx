@@ -175,7 +175,7 @@ const AdminDashboard: React.FC = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-12 lg:w-auto">
+          <TabsList className="flex w-full justify-start overflow-x-auto snap-x lg:flex-wrap lg:w-auto">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>

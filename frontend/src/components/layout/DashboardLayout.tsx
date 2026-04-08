@@ -249,7 +249,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex w-full max-w-[100vw] overflow-x-hidden relative">
       {/* Sidebar - Desktop */}
       <aside className={cn(
         "fixed lg:relative inset-y-0 left-0 z-50 w-72 bg-card border-r border-border transform transition-transform duration-300 lg:translate-x-0",
@@ -500,7 +500,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 md:p-6 w-full max-w-full min-w-0 overflow-x-hidden">
           {children}
         </main>
       </div>
