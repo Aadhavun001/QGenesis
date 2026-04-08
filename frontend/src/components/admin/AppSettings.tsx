@@ -18,8 +18,11 @@ import {
   ExternalLink,
   Undo2,
   AlertCircle,
-  Database
+  Database,
+  BarChart
 } from 'lucide-react';
+import { db, isFirebaseConfigured } from '@/services/firebase/firestore-config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,6 +85,7 @@ const AppSettings: React.FC = () => {
   
   // Local form states
   const [landingForm, setLandingForm] = useState<LandingSettings>(settings.landing);
+  const [publicStatsForm, setPublicStatsForm] = useState({ totalQuestionsGenerated: 50000 });
   const [staffForm, setStaffForm] = useState(settings.staff);
   const [hodForm, setHodForm] = useState(settings.hod);
   const [adminForm, setAdminForm] = useState(settings.admin);
@@ -99,6 +103,23 @@ const AppSettings: React.FC = () => {
     }
     return DEFAULT_SECTIONS;
   });
+
+  // Fetch Public Stats
+  useEffect(() => {
+    if (!isFirebaseConfigured() || !db) return;
+    const fetchStats = async () => {
+      try {
+        const docRef = doc(db, 'app_settings', 'public_stats');
+        const snap = await getDoc(docRef);
+        if (snap.exists() && snap.data().totalQuestionsGenerated !== undefined) {
+          setPublicStatsForm({ totalQuestionsGenerated: snap.data().totalQuestionsGenerated });
+        }
+      } catch (e) {
+        console.error('Failed to fetch public stats:', e);
+      }
+    };
+    fetchStats();
+  }, []);
 
   // Track unsaved changes per tab
   const hasLandingChanges = useMemo(() => !deepEqual(landingForm, settings.landing), [landingForm, settings.landing]);
@@ -227,9 +248,23 @@ const AppSettings: React.FC = () => {
     setLandingSections(prev => prev.map(s => s.id === id ? { ...s, enabled } : s));
   };
 
-  const handleSaveLanding = () => {
+  const handleSaveLanding = async () => {
     updatePageSettings('landing', landingForm);
-    toast.success('Landing page settings saved');
+    
+    // Save public stats
+    if (isFirebaseConfigured() && db) {
+      try {
+        await setDoc(doc(db, 'app_settings', 'public_stats'), {
+          totalQuestionsGenerated: Number(publicStatsForm.totalQuestionsGenerated)
+        }, { merge: true });
+        toast.success('Landing page and public stats saved');
+      } catch (err) {
+        console.error('Failed to save public stats', err);
+        toast.error('Saved landing page, but failed to save public stats');
+      }
+    } else {
+      toast.success('Landing page settings saved');
+    }
   };
 
   const handleSaveStaff = () => {
@@ -636,6 +671,29 @@ const AppSettings: React.FC = () => {
                         placeholder="Description text"
                         rows={3}
                       />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Public Statistics Section */}
+                <AccordionItem value="public-stats" className="border rounded-lg px-4">
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <BarChart className="w-5 h-5" />
+                      <span className="font-semibold">Public Statistics</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-4 pt-2">
+                    <p className="text-sm text-muted-foreground">These stats are displayed on the public landing page to show platform growth.</p>
+                    <div className="space-y-2">
+                      <Label>Total Questions Generated</Label>
+                      <Input
+                        type="number"
+                        value={publicStatsForm.totalQuestionsGenerated}
+                        onChange={(e) => setPublicStatsForm(prev => ({ ...prev, totalQuestionsGenerated: parseInt(e.target.value) || 0 }))}
+                        placeholder="e.g. 50000"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">This number will update dynamically on the landing page for all users once saved.</p>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
